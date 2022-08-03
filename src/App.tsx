@@ -2,15 +2,46 @@ import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { typography, TypographyProps } from 'styled-system'
+import styled from 'styled-components/native';
 import { FeedItem } from './components/FeedItem';
 import { Highlight } from './components/Highligh';
 import { StoryItem } from './components/StoryItem';
 
 const stories = ['Programação', 'Lorem', 'Ipsum', 'Aulas', 'Javascript']
 
+const CustomText = styled.Text<TypographyProps>`
+  ${typography}
+`
+
+// https://api.unsplash.com/photos/?client_id=eroauhNFSRgaJ0ywQBDb8UnKJ6_je9AK0A--6WNuPN8
+
+const CLIENT_ID='eroauhNFSRgaJ0ywQBDb8UnKJ6_je9AK0A--6WNuPN8'
+
+type ImageEndpoint = {
+  id: string,
+  urls: {
+    full: string
+  }
+}
+
+const fetcher = (endpoint = '') => {
+  const params = new URLSearchParams({ client_id: CLIENT_ID })
+  const request = fetch(`https://api.unsplash.com/${endpoint}/?${params}`)
+    .then<ImageEndpoint[]>(res => res.json())
+  return request
+}
+
 // TODO: Transformar Header em component
 // TODO: Transformar o Profile em component
 export default function App() {
+  const [images, setImages] = React.useState<ImageEndpoint[]>([])
+
+  React.useEffect(() => {
+    fetcher('photos').then(setImages)
+  }, []);
+
+
   return (
     <SafeAreaView style={{flex: 1}}>
       <View style={styles.container}>
@@ -22,16 +53,16 @@ export default function App() {
           <View style={styles.profileInfo}>
             <View style={styles.profileStatus}>
               <View style={styles.profileStatusText}>
-                <Text>114</Text>
-                <Text>publicações</Text>
+                <CustomText fontWeight='bold'>114</CustomText>
+                <CustomText>publicações</CustomText>
               </View>
               <View style={styles.profileStatusText}>
-                <Text>43.4K</Text>
-                <Text>seguidores</Text>
+                <CustomText fontWeight='bold'>43.4K</CustomText>
+                <CustomText>seguidores</CustomText>
               </View>
               <View style={styles.profileStatusText}>
-                <Text>1</Text>
-                <Text>seguindo</Text>
+                <CustomText fontWeight='bold'>1</CustomText>
+                <CustomText>seguindo</CustomText>
               </View>
             </View>
             <Text>Let's Code</Text>
@@ -50,18 +81,9 @@ export default function App() {
           ))}
         </ScrollView>
         <View style={styles.feedWrapper}>
-          <FeedItem />
-          <FeedItem />
-          <FeedItem />
-          <FeedItem />
-          <FeedItem />
-          <FeedItem />
-          <FeedItem />
-          <FeedItem />
-          <FeedItem />
-          <FeedItem />
-          <FeedItem />
-          <FeedItem />
+          {images.map(image => {
+            return <FeedItem key={image.id} imageUrl={image.urls.full} />
+          })}
         </View>
         </ScrollView>
         <StatusBar style="auto" />
